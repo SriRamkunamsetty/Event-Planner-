@@ -1,0 +1,6 @@
+{
+  "name": "Atelier Chronos — GenAI Celebration & Event Planner",
+  "description": "Production-grade GenAI event planning workspace for weddings, birthdays, and community events with dynamic budget ledgers, critical-path timelines, vendor compliance checklists, and personalized ideation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
