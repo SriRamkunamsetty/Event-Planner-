@@ -3,22 +3,27 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, type FormEvent } from 'react';
+/**
+ * @fileoverview Dialog component for creating a custom celebration blueprint with
+ * strict parameter validation for budget, guest count, and event date.
+ */
+
 import { Loader2, Sparkles, X } from 'lucide-react';
+import { useState, type FormEvent, type JSX } from 'react';
 import { validateBlueprintInput } from '../domain/security';
 import type { EventPlan, EventVertical, VenueSetting } from '../types/planner';
 
-interface NewBlueprintModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onCreatedPlan: (plan: EventPlan) => void;
+export interface NewBlueprintModalProps {
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly onCreatedPlan: (plan: EventPlan) => void;
 }
 
 export function NewBlueprintModal({
   isOpen,
   onClose,
   onCreatedPlan,
-}: NewBlueprintModalProps) {
+}: NewBlueprintModalProps): JSX.Element | null {
   const [title, setTitle] = useState('Coastal Botanical Wedding & Reception');
   const [vertical, setVertical] = useState<EventVertical>('wedding');
   const [totalBudget, setTotalBudget] = useState('36000');
@@ -29,12 +34,14 @@ export function NewBlueprintModal({
   const [priorities, setPriorities] = useState(
     'Zero-waste floral installations, celiac-safe plated dinner, and acoustic jazz trio'
   );
-  const [errors, setErrors] = useState<string[]>([]);
+  const [errors, setErrors] = useState<readonly string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
     const validation = validateBlueprintInput({
       title,
@@ -84,13 +91,8 @@ export function NewBlueprintModal({
       <div className="bg-white border border-slate-200 rounded-xl max-w-xl w-full p-6 space-y-5 shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-start justify-between gap-4 pb-3 border-b border-slate-200">
           <div>
-            <p className="text-xs font-medium text-teal-800">
-              GenAI Event Blueprint Architect
-            </p>
-            <h2
-              id="modal-blueprint-title"
-              className="font-display text-xl font-semibold text-slate-900 mt-0.5"
-            >
+            <p className="text-xs font-medium text-teal-800">GenAI Event Blueprint Architect</p>
+            <h2 id="modal-blueprint-title" className="font-display text-xl font-semibold text-slate-900 mt-0.5">
               Generate Custom Celebration Plan
             </h2>
           </div>
@@ -105,10 +107,7 @@ export function NewBlueprintModal({
         </div>
 
         {errors.length > 0 && (
-          <div
-            role="alert"
-            className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-800 space-y-1"
-          >
+          <div role="alert" className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-800 space-y-1">
             {errors.map((err, i) => (
               <p key={i}>{err}</p>
             ))}

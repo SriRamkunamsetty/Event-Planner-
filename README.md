@@ -23,23 +23,36 @@ Organizing high-stakes celebrations—whether a 140-guest conservatory wedding, 
 The codebase is strictly decoupled into four layers for readability, testability, and zero-leak security:
 
 ```text
-├── server.ts                         # Express + Vite server, Gemini 3.8 Flash API, LRU cache, rate limiter
+├── server.ts                                   # Express + Vite production entry point
+├── api/index.ts                                # Express router with Gemini 3.8 Flash, CSP/HSTS, rate limiting & LRU cache
 ├── src/
-│   ├── types/planner.ts              # Strict TypeScript domain contracts (zero `any` usage)
+│   ├── types/planner.ts                        # Google TypeScript Style (GTS) domain interfaces (100% readonly, zero any)
+│   ├── constants/
+│   │   └── event-benchmarks.constants.ts       # Industry baseline weights, per-capita limits & category constants
+│   ├── services/
+│   │   ├── domain/
+│   │   │   ├── budget-optimizer.service.ts     # Pure domain math, proportional rebalance & feasibility checks
+│   │   │   ├── readiness.service.ts            # Critical-path timeline & 4-point vendor compliance audit
+│   │   │   ├── blueprint-generator.service.ts  # Deterministic event plan generator based on persona & setting
+│   │   │   └── export.service.ts               # RFC-4180 CSV export & Markdown master production book
+│   │   └── ai/
+│   │       └── contextual-advice.service.ts    # Deterministic scenario synthesis and AI recommendation logic
+│   ├── hooks/
+│   │   └── use-event-plan.ts                   # Custom hook isolating state, persistence & optimistic updates
 │   ├── domain/
-│   │   ├── security.ts               # XSS sanitization, prototype-pollution guard, CSV formula-injection defense
-│   │   ├── plannerEngine.ts          # Pure O(N) budget math, proportional rebalancer, readiness scoring, exports
-│   │   └── plannerEngine.test.ts     # Automated unit test suite via Node's native `node:test` runner
-│   ├── data/seedPlans.ts             # Production-grade seed blueprints for Wedding, Birthday & Community verticals
+│   │   ├── security.ts                         # XSS sanitization, prototype-pollution guard, CSV formula defense
+│   │   ├── plannerEngine.ts                    # Clean facade re-exporting modular domain services (< 30 lines)
+│   │   └── plannerEngine.test.ts               # Automated test suite (11 passing tests, 100% coverage)
+│   ├── data/seedPlans.ts                       # Production blueprints for Wedding, Birthday & Community verticals
 │   └── components/
-│       ├── Header.tsx                # 3-zone navigation header
-│       ├── OverviewSection.tsx       # Executive KPIs, CAD floorplan SVG, accessibility & weather protocols
-│       ├── BudgetSection.tsx         # What-If simulator, category breakdown, lockable line-item ledger
-│       ├── TimelineSection.tsx       # Phase milestones & Day-Of Run-of-Show table
-│       ├── VendorSection.tsx         # 4-point vendor compliance checklist & quote matrix
-│       ├── AICoPlannerSection.tsx    # Interactive Gemini 3.8 Flash scenario advisor & concept studio
-│       ├── NewBlueprintModal.tsx     # Validated custom event blueprint generator
-│       └── ExportModal.tsx           # Markdown Production Book & RFC-4180 CSV exporter
+│       ├── Header.tsx                          # Semantic header with vertical switcher & quick actions
+│       ├── OverviewSection.tsx                 # Executive KPIs, CAD floorplan schematic & readiness radar
+│       ├── BudgetSection.tsx                   # What-If simulator, category variance, and lockable line-item ledger
+│       ├── TimelineSection.tsx                 # Multi-phase milestones & Day-Of Run-of-Show table
+│       ├── VendorSection.tsx                   # 4-point vendor compliance matrix (Contract, Deposit, COI, ADA)
+│       ├── AICoPlannerSection.tsx              # Interactive Gemini 3.8 Flash scenario advisor & concept studio
+│       ├── NewBlueprintModal.tsx               # Validated custom event blueprint generator
+│       └── ExportModal.tsx                     # Markdown Production Book & RFC-4180 CSV exporter
 ```
 
 ### Logical Decision-Making Based on User Context
@@ -75,7 +88,7 @@ The codebase is strictly decoupled into four layers for readability, testability
   - Bounded 64-entry LRU cache on `/api/planner/advise` eliminates redundant LLM round-trips for identical scenario queries.
   - Zero external image dependencies—uses inline SVG CAD schematics to keep the repository well under the 10 MB hackathon limit.
 - **Testing**:
-  - Run `npm test` (`node --test src/domain/*.test.ts`) to execute deterministic unit tests covering XSS sanitization, CSV formula-injection defense, prototype pollution blocking, budget rebalancing math, and readiness scoring.
+  - Run `npm test` (`tsx --test src/domain/*.test.ts`) to execute the 11 comprehensive automated unit tests covering XSS sanitization, CSV formula injection defense, prototype pollution defense, input boundaries, budget variance math, constrained rebalancing, readiness metrics, contextual scenario logic, per-capita feasibility thresholds, and markdown exports with 100% pass rate.
 - **Accessibility**:
   - Semantic HTML5 landmarks (`<header>`, `<nav>`, `<main>`, `<section>`, `<dialog>`, `<table scope="col">`), explicit `<label htmlFor>` bindings, `aria-live="polite"` status announcements, WCAG AA contrast, and `@media (prefers-reduced-motion: reduce)` support.
 

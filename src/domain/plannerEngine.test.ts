@@ -15,7 +15,9 @@ import {
 import {
   calculateBudgetSummary,
   calculateReadinessMetrics,
+  evaluateContextFeasibility,
   exportBudgetToCSV,
+  exportPlanToMarkdown,
   generateContextualAIAdvice,
   generateDeterministicBlueprint,
   rebalanceBudget,
@@ -171,3 +173,53 @@ test('plannerEngine: generateContextualAIAdvice and CSV export work deterministi
   const csv = exportBudgetToCSV(plan);
   assert.ok(csv.includes('"Category","Line Item"'));
 });
+
+test('budgetOptimizer: evaluateContextFeasibility validates per-guest thresholds', () => {
+  const lowWedding = evaluateContextFeasibility('wedding', 5000, 100);
+  assert.equal(lowWedding.isFeasible, false);
+  assert.ok(lowWedding.perGuestAmount < 150);
+  assert.ok(lowWedding.warnings.length > 0);
+
+  const healthyFestival = evaluateContextFeasibility('community', 150000, 500);
+  assert.equal(healthyFestival.isFeasible, true);
+  assert.equal(healthyFestival.perGuestAmount, 300);
+  assert.ok(healthyFestival.warnings.some((w) => w.includes('Large community gathering')));
+});
+
+test('exportService: exportPlanToMarkdown generates comprehensive production book', () => {
+  const plan = generateDeterministicBlueprint({
+    title: 'Civic Harvest Festival',
+    vertical: 'community',
+    totalBudget: 15000,
+    guestCount: 300,
+    eventDate: '2027-10-10',
+    location: 'Town Square',
+    setting: 'outdoor',
+    priorities: 'Zero waste',
+  });
+
+  const markdown = exportPlanToMarkdown(plan);
+  assert.ok(markdown.includes('# Civic Harvest Festival — Master Event Production Book'));
+  assert.ok(markdown.includes('## 1. Budget Ledger'));
+  assert.ok(markdown.includes('## 2. Critical-Path Timeline & Run of Show'));
+  assert.ok(markdown.includes('## 3. Vendor Compliance Matrix'));
+});
+
+test('plannerEngine: rebalanceBudget handles all items locked or zero unlocked gracefully', () => {
+  const allLocked = [
+    {
+      id: 'l1',
+      category: 'Venue & Permits' as const,
+      title: 'Permit',
+      allocated: 5000,
+      actual: 5000,
+      paid: 5000,
+      isLocked: true,
+      notes: '',
+    },
+  ];
+
+  const result = rebalanceBudget(allLocked, 7000);
+  assert.equal(result[0].allocated, 5000);
+});
+

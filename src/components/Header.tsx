@@ -3,23 +3,39 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @fileoverview Main top navigation bar adhering strictly to the 3-zone contract.
+ * Zone 1: Text wordmark. Zone 2: 5 navigation links. Zone 3: 1 primary CTA.
+ */
+
+import type { JSX } from 'react';
+
 export type ActiveTab = 'overview' | 'budget' | 'timeline' | 'vendors' | 'ai';
 
-interface HeaderProps {
-  activeTab: ActiveTab;
-  onSelectTab: (tab: ActiveTab) => void;
-  onOpenNewBlueprint: () => void;
+export interface HeaderProps {
+  readonly activeTab: ActiveTab;
+  readonly onSelectTab: (tab: ActiveTab) => void;
+  readonly onOpenNewBlueprint: () => void;
 }
 
-const NAV_ITEMS: Array<{ id: ActiveTab; label: string }> = [
+interface NavItem {
+  readonly id: ActiveTab;
+  readonly label: string;
+}
+
+const NAV_ITEMS: readonly NavItem[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'budget', label: 'Budget Ledger' },
   { id: 'timeline', label: 'Timeline' },
   { id: 'vendors', label: 'Vendors' },
   { id: 'ai', label: 'AI Co-Planner' },
-];
+] as const;
 
-export function Header({ activeTab, onSelectTab, onOpenNewBlueprint }: HeaderProps) {
+export function Header({
+  activeTab,
+  onSelectTab,
+  onOpenNewBlueprint,
+}: HeaderProps): JSX.Element {
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-slate-200">
       <div className="max-w-[1360px] mx-auto flex flex-wrap md:flex-nowrap items-center justify-between gap-y-2 gap-x-4 md:gap-8 px-4 sm:px-6 py-3">

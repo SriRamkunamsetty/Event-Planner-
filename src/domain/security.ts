@@ -3,11 +3,32 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @fileoverview Security validation, XSS sanitization, prototype pollution defense,
+ * and CSV formula-injection neutralization utilities adhering to Google TypeScript Style.
+ */
+
 import type { BlueprintGeneratorInput, EventVertical, VenueSetting } from '../types/planner';
 
 const VALID_VERTICALS: ReadonlySet<EventVertical> = new Set(['wedding', 'birthday', 'community']);
 const VALID_SETTINGS: ReadonlySet<VenueSetting> = new Set(['indoor', 'outdoor', 'hybrid']);
 const DANGEROUS_KEYS: ReadonlySet<string> = new Set(['__proto__', 'constructor', 'prototype']);
+
+export interface BlueprintValidationResult {
+  readonly valid: boolean;
+  readonly data?: BlueprintGeneratorInput;
+  readonly errors: readonly string[];
+}
+
+export interface AdviceValidationResult {
+  readonly valid: boolean;
+  readonly prompt?: string;
+  readonly vertical?: EventVertical;
+  readonly totalBudget?: number;
+  readonly guestCount?: number;
+  readonly setting?: VenueSetting;
+  readonly errors: readonly string[];
+}
 
 /**
  * Strips HTML tags, script payloads, control characters, and normalizes whitespace.
@@ -16,6 +37,7 @@ export function sanitizeText(input: unknown, maxLength = 400): string {
   if (typeof input !== 'string') {
     return '';
   }
+
   const withoutScripts = input
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
     .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
@@ -41,8 +63,12 @@ export function escapeCsvCell(value: string | number | boolean): string {
  * Recursively checks an unknown payload for prototype pollution keys.
  */
 export function isSafeObject(value: unknown, depth = 0): boolean {
-  if (depth > 8) return false;
-  if (value === null || typeof value !== 'object') return true;
+  if (depth > 8) {
+    return false;
+  }
+  if (value === null || typeof value !== 'object') {
+    return true;
+  }
   if (Array.isArray(value)) {
     return value.every((item) => isSafeObject(item, depth + 1));
   }
@@ -61,11 +87,7 @@ export function isSafeObject(value: unknown, depth = 0): boolean {
 /**
  * Validates and sanitizes user input for generating a new Event Blueprint.
  */
-export function validateBlueprintInput(raw: unknown): {
-  valid: boolean;
-  data?: BlueprintGeneratorInput;
-  errors: string[];
-} {
+export function validateBlueprintInput(raw: unknown): BlueprintValidationResult {
   const errors: string[] = [];
 
   if (!raw || typeof raw !== 'object' || !isSafeObject(raw)) {
@@ -127,15 +149,7 @@ export function validateBlueprintInput(raw: unknown): {
 /**
  * Validates and sanitizes AI Co-Planner advisory prompts.
  */
-export function validateAdviceRequest(raw: unknown): {
-  valid: boolean;
-  prompt?: string;
-  vertical?: EventVertical;
-  totalBudget?: number;
-  guestCount?: number;
-  setting?: VenueSetting;
-  errors: string[];
-} {
+export function validateAdviceRequest(raw: unknown): AdviceValidationResult {
   if (!raw || typeof raw !== 'object' || !isSafeObject(raw)) {
     return { valid: false, errors: ['Invalid or unsafe advisory request payload.'] };
   }

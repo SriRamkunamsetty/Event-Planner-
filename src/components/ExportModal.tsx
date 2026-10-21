@@ -3,17 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+/**
+ * @fileoverview Dialog component for copying and downloading the complete Event Production Book
+ * in Markdown format or the RFC-4180 CSV Budget Ledger with formula-injection neutralization.
+ */
+
 import { Check, Copy, Download, X } from 'lucide-react';
+import { useState, type JSX } from 'react';
 import { exportBudgetToCSV, exportPlanToMarkdown } from '../domain/plannerEngine';
 import type { BudgetSummary, EventPlan, ReadinessMetrics } from '../types/planner';
 
-interface ExportModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  plan: EventPlan;
-  budget: BudgetSummary;
-  readiness: ReadinessMetrics;
+export interface ExportModalProps {
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly plan: EventPlan;
+  readonly budget: BudgetSummary;
+  readonly readiness: ReadinessMetrics;
 }
 
 export function ExportModal({
@@ -22,18 +27,20 @@ export function ExportModal({
   plan,
   budget,
   readiness,
-}: ExportModalProps) {
+}: ExportModalProps): JSX.Element | null {
   const [format, setFormat] = useState<'markdown' | 'csv'>('markdown');
   const [copied, setCopied] = useState(false);
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   const content =
     format === 'markdown'
       ? exportPlanToMarkdown(plan, budget, readiness)
       : exportBudgetToCSV(plan);
 
-  const handleCopy = async () => {
+  const handleCopy = async (): Promise<void> => {
     try {
       await navigator.clipboard.writeText(content);
       setCopied(true);
@@ -43,7 +50,7 @@ export function ExportModal({
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = (): void => {
     const mime = format === 'markdown' ? 'text/markdown;charset=utf-8' : 'text/csv;charset=utf-8';
     const ext = format === 'markdown' ? 'md' : 'csv';
     const blob = new Blob([content], { type: mime });
@@ -70,10 +77,7 @@ export function ExportModal({
             <p className="text-xs font-medium text-slate-500">
               RFC-4180 CSV (Formula-Injection Protected) &amp; Markdown Production Packet
             </p>
-            <h2
-              id="export-modal-title"
-              className="font-display text-xl font-semibold text-slate-900 mt-0.5"
-            >
+            <h2 id="export-modal-title" className="font-display text-xl font-semibold text-slate-900 mt-0.5">
               Export Master Event Production Book
             </h2>
           </div>
